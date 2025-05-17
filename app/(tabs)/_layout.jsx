@@ -1,5 +1,15 @@
-import { Image, StyleSheet, Text, View, Pressable } from "react-native";
-import React from "react";
+import {
+  Image,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  Keyboard,
+  Animated,
+  Platform,
+  AppState,
+} from "react-native";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { Tabs } from "expo-router";
 import home from "../../assets/images/home.png";
 import tasks from "../../assets/images/task.png";
@@ -12,8 +22,46 @@ import interMedium from "../../assets/fonts/Inter_18pt-Medium.ttf";
 import interSemiBold from "../../assets/fonts/Inter_18pt-SemiBold.ttf";
 import interBold from "../../assets/fonts/Inter_18pt-Bold.ttf";
 import interBlack from "../../assets/fonts/Inter_18pt-Black.ttf";
-import "@/global.css";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 const _layout = () => {
+  const tabBarPosition = useRef(new Animated.Value(0)).current;
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [profilePic, setProfilePic] = useState(profile);
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      handleKeyboardShow
+    );
+    const hideSubscription = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      handleKeyboardHide
+    );
+
+    return () => {
+      hideSubscription.remove();
+      showSubscription.remove();
+    };
+  }, []);
+
+  const handleKeyboardHide = () => {
+    setKeyboardVisible(false);
+    Animated.timing(tabBarPosition, {
+      toValue: 0,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleKeyboardShow = (event) => {
+    setKeyboardVisible(true);
+    Animated.timing(tabBarPosition, {
+      toValue: 150,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  };
+
   const TabIcon = ({ icon, color, focused }) => {
     return (
       <View
@@ -35,6 +83,25 @@ const _layout = () => {
       </View>
     );
   };
+  const getProfilePic = async () => {
+    try {
+      const userProfilePic = await AsyncStorage.getItem("userProfilePic");
+      if (userProfilePic) {
+        setProfilePic({ uri: userProfilePic });
+      } else {
+        setProfilePic(profile);
+      }
+    } catch (error) {
+      console.error("Error fetching profile pic:", error);
+      setProfilePic(profile);
+    }
+  };
+  useFocusEffect(
+    useCallback(() => {
+      getProfilePic();
+    }, [])
+  );
+
   const [fontsLoaded] = useFonts({
     interBlack: interBlack,
     interRegular: interRegular,
@@ -42,6 +109,7 @@ const _layout = () => {
     interSemiBold: interSemiBold,
     interBold: interBold,
   });
+
   if (!fontsLoaded) {
     return (
       <View
@@ -57,121 +125,120 @@ const _layout = () => {
     );
   }
   return (
-    <Tabs
-      initialRouteName="profile"
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarActiveTintColor: "#577CFF",
-        tabBarInactiveTintColor: "#000",
-        tabBarShowLabel: false,
-        tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          backgroundColor: "#fff",
-          borderTopWidth: 1,
-          width: "90%",
-          height: 60,
-          borderColor: "transparent",
-          shadowColor: "#000",
-          shadowOpacity: 0.1,
-          shadowOffset: { width: 0, height: -2 },
-          shadowRadius: 5,
-          elevation: 5,
-          position: "absolute",
-          margin: 15,
-          borderRadius: 25,
-          bottom: 8,
-        },
-        tabBarButton: (props) => {
-          return (
-            <Pressable
-              {...props}
-              android_ripple={{ color: "transparent" }}
-              android_disableSound={false}
-              style={(state) => [
-                props.style,
-                {
-                  backgroundColor: state.pressed
-                    ? "transparent"
-                    : "transparent",
-                },
-              ]}
-            />
-          );
-        },
-      })}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          tabBarLabel: "home",
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={home} color={color} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="calender"
-        options={{
-          tabBarLabel: "calender",
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={calender} color={color} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="create"
-        options={{
-          tabBarLabel: "createtask",
-          tabBarIcon: () => (
-            <View
-              style={{
-                position: "absolute",
-                top: -30,
-                right: -35,
-                width: 70,
-                height: 70,
-                borderRadius: 35,
-                backgroundColor: "#577CFF",
-                alignItems: "center",
-                justifyContent: "center",
-                shadowColor: "#000",
-                shadowOpacity: 0.2,
-                shadowOffset: { width: 0, height: 4 },
-                shadowRadius: 5,
-                elevation: 8,
-              }}
-            >
-              <Image
-                source={add}
-                resizeMode="contain"
-                style={{ width: 35, height: 35 }}
+    <>
+      <Tabs
+        initialRouteName="profile"
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarActiveTintColor: "#577CFF",
+          tabBarInactiveTintColor: "#000",
+          tabBarShowLabel: false,
+          tabBarStyle: {
+            backgroundColor: "#fff",
+            borderTopWidth: 1,
+            width: "90%",
+            height: 60,
+            borderColor: "transparent",
+            shadowColor: "#000",
+            shadowOpacity: 0.1,
+            shadowOffset: { width: 0, height: -2 },
+            shadowRadius: 5,
+            elevation: 5,
+            position: "absolute",
+            margin: 15,
+            borderRadius: 25,
+            bottom: 15,
+            zIndex: 100,
+            transform: [{ translateY: tabBarPosition }],
+          },
+          tabBarButton: (props) => {
+            return (
+              <Pressable
+                {...props}
+                android_ripple={{ color: "transparent" }}
+                android_disableSound={false}
+                style={(state) => [
+                  props.style,
+                  {
+                    backgroundColor: state.pressed
+                      ? "transparent"
+                      : "transparent",
+                  },
+                ]}
               />
-            </View>
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="manage"
-        options={{
-          tabBarLabel: "alltasks",
-
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={tasks} color={color} focused={focused} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          tabBarLabel: "profile",
-
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon icon={profile} color={color} focused={focused} />
-          ),
-        }}
-      />
-    </Tabs>
+            );
+          },
+        })}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            tabBarLabel: "home",
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon icon={home} color={color} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="calender"
+          options={{
+            tabBarLabel: "calender",
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon icon={calender} color={color} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="create"
+          options={{
+            tabBarLabel: "createtask",
+            tabBarIcon: () => (
+              <View
+                style={{
+                  position: "absolute",
+                  top: -30,
+                  right: -35,
+                  width: 70,
+                  height: 70,
+                  borderRadius: 35,
+                  backgroundColor: "#577CFF",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  shadowColor: "#000",
+                  shadowOpacity: 0.2,
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowRadius: 5,
+                  elevation: 8,
+                }}
+              >
+                <Image
+                  source={add}
+                  resizeMode="contain"
+                  style={{ width: 35, height: 35 }}
+                />
+              </View>
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="manage"
+          options={{
+            tabBarLabel: "alltasks",
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon icon={tasks} color={color} focused={focused} />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          key={profilePic}
+          name="profile"
+          options={{
+            tabBarLabel: "profile",
+            tabBarIcon: () => <TabIcon icon={profilePic} />,
+          }}
+        />
+      </Tabs>
+    </>
   );
 };
 
