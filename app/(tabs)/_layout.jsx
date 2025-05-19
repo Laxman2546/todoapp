@@ -101,7 +101,7 @@ const _layout = () => {
     }).start();
   };
 
-  const TabIcon = ({ icon, color, focused }) => {
+  const TabIcon = ({ icon, color, focused, type }) => {
     return (
       <View
         style={{
@@ -114,9 +114,11 @@ const _layout = () => {
           source={icon}
           resizeMode="contain"
           style={{
-            tintColor: focused ? "#577CFF" : color,
+            tintColor: focused && type != "profile" ? "#577CFF" : color,
             width: 25,
             height: 25,
+            borderWidth: type === "profile" && focused ? 2 : 0,
+            borderRadius: type === "profile" && focused ? 50 : 0,
           }}
         />
       </View>
@@ -285,7 +287,9 @@ const _layout = () => {
           name="profile"
           options={{
             tabBarLabel: "profile",
-            tabBarIcon: () => <TabIcon icon={profilePic} />,
+            tabBarIcon: ({ type, focused }) => (
+              <TabIcon icon={profilePic} type={"profile"} focused={focused} />
+            ),
           }}
         />
       </Tabs>

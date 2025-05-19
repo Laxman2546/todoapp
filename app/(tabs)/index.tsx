@@ -11,6 +11,8 @@ const profile = require("../../assets/images/user.png");
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
+import MainCards from "../../components/mainCards";
+
 const index = () => {
   const DEFAULT_IMAGE = require("../../assets/images/user.png");
   const [greetings, setgreetings] = useState("");
@@ -71,29 +73,30 @@ const index = () => {
             <Ionicons name="notifications-outline" size={24} color="black" />
           </View>
         </View>
-      </View>
-      <View style={styles.taskTopBar}>
-        <View style={styles.tasksHeadline}>
-          <Text style={styles.taskHeading}>Today's Tasks</Text>
-          <Text style={styles.taskPending}>5 Tasks Pending</Text>
-        </View>
-        <View style={styles.iconsTopBar}>
-          <View>
-            <Image
-              source={require("../../assets/images/filter.png")}
-              style={styles.filterImage}
-            />
+        <View style={styles.taskTopBar}>
+          <View style={styles.tasksHeadline}>
+            <Text style={styles.taskHeading}>Today's Tasks</Text>
+            <Text style={styles.taskPending}>5 Tasks Pending</Text>
           </View>
-          <View style={styles.borderLine}></View>
-          <View>
-            <Ionicons
-              name="add-outline"
-              size={24}
-              color="black"
-              style={{ marginLeft: 20, marginTop: 20 }}
-            />
+          <View style={styles.iconsTopBar}>
+            <View>
+              <Image
+                source={require("../../assets/images/filter.png")}
+                style={styles.filterImage}
+              />
+            </View>
+            <View style={styles.borderLine}></View>
+            <View>
+              <Ionicons
+                name="add-outline"
+                size={24}
+                color="black"
+                style={{ marginLeft: 20, marginTop: 20 }}
+              />
+            </View>
           </View>
         </View>
+        <MainCards />
       </View>
     </ScrollView>
   );
@@ -139,7 +142,6 @@ const styles = StyleSheet.create({
   },
   tasksHeadline: {
     marginTop: 20,
-    marginLeft: 20,
     display: "flex",
     flexDirection: "column",
     gap: 5,
@@ -149,7 +151,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginRight: 20,
   },
   taskHeading: {
     fontFamily: "interSemiBold",
