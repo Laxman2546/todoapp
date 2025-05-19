@@ -11,9 +11,7 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import Animated from "react-native-reanimated";
-import { StatusBar } from "expo-status-bar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { use } from "react";
 
 const profile = () => {
   const DEFAULT_IMAGE = require("../../assets/images/user.png");
@@ -28,8 +26,6 @@ const profile = () => {
     setShowGender(!showGender);
     setShowSave(true);
   };
-
-  // Update profile image based on name and gender
   const updateProfileImage = async (
     currentName = name,
     currentGender = gender
@@ -44,11 +40,20 @@ const profile = () => {
         imageURI = `https://avatar.iran.liara.run/public/${currentGender}`;
         imageSource = { uri: imageURI };
         await AsyncStorage.setItem("userProfilePic", imageURI);
+        triggerProfileUpdate();
       }
 
       setUserProfilePic(imageSource);
     } catch (error) {
       console.log("Error updating profile image:", error);
+    }
+  };
+
+  const triggerProfileUpdate = async () => {
+    try {
+      await AsyncStorage.setItem("profileLastUpdated", new Date().toString());
+    } catch (error) {
+      console.log("Error triggering profile update:", error);
     }
   };
 
@@ -101,7 +106,6 @@ const profile = () => {
   return (
     <ScrollView style={{ backgroundColor: "#fff" }}>
       <View style={{ flex: 1, backgroundColor: "#fff" }}>
-        <StatusBar backgroundColor="#90a7f5" barStyle="light-content" />
         <View
           style={{
             flex: 1,

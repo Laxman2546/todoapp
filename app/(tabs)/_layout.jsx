@@ -24,10 +24,14 @@ import interBold from "../../assets/fonts/Inter_18pt-Bold.ttf";
 import interBlack from "../../assets/fonts/Inter_18pt-Black.ttf";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import { StatusBar } from "expo-status-bar";
 const _layout = () => {
   const tabBarPosition = useRef(new Animated.Value(0)).current;
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [profilePic, setProfilePic] = useState(profile);
+  const [profilePicKey, setProfilePicKey] = useState(0);
+  const appState = useRef(AppState.currentState);
+
   useEffect(() => {
     const showSubscription = Keyboard.addListener(
       Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
@@ -38,9 +42,44 @@ const _layout = () => {
       handleKeyboardHide
     );
 
+    // Add AppState listener to detect when app comes to foreground
+    const appStateSubscription = AppState.addEventListener(
+      "change",
+      (nextAppState) => {
+        if (
+          appState.current.match(/inactive|background/) &&
+          nextAppState === "active"
+        ) {
+          getProfilePic();
+        }
+        appState.current = nextAppState;
+      }
+    );
+
+    const checkProfileInterval = setInterval(async () => {
+      try {
+        const lastChecked = await AsyncStorage.getItem(
+          "lastProfileCheckTimestamp"
+        );
+        const lastUpdated = await AsyncStorage.getItem("profileLastUpdated");
+
+        if (!lastChecked || (lastUpdated && lastChecked < lastUpdated)) {
+          getProfilePic();
+          await AsyncStorage.setItem(
+            "lastProfileCheckTimestamp",
+            new Date().toString()
+          );
+        }
+      } catch (error) {
+        console.error("Error checking profile updates:", error);
+      }
+    }, 1000); // Check every second
+
     return () => {
       hideSubscription.remove();
       showSubscription.remove();
+      appStateSubscription.remove();
+      clearInterval(checkProfileInterval);
     };
   }, []);
 
@@ -83,11 +122,13 @@ const _layout = () => {
       </View>
     );
   };
+
   const getProfilePic = async () => {
     try {
       const userProfilePic = await AsyncStorage.getItem("userProfilePic");
       if (userProfilePic) {
         setProfilePic({ uri: userProfilePic });
+        setProfilePicKey((prevKey) => prevKey + 1);
       } else {
         setProfilePic(profile);
       }
@@ -96,9 +137,18 @@ const _layout = () => {
       setProfilePic(profile);
     }
   };
+
+  // Check for profile pic on every tab focus
   useFocusEffect(
     useCallback(() => {
       getProfilePic();
+
+      // Set up an interval to periodically check for updates
+      const intervalId = setInterval(() => {
+        getProfilePic();
+      }, 2000); // Check every 2 seconds
+
+      return () => clearInterval(intervalId);
     }, [])
   );
 
@@ -126,8 +176,9 @@ const _layout = () => {
   }
   return (
     <>
+      <StatusBar backgroundColor="#90a7f5" barStyle="light-content" />
       <Tabs
-        initialRouteName="profile"
+        initialRouteName="index"
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarActiveTintColor: "#577CFF",
@@ -230,7 +281,7 @@ const _layout = () => {
           }}
         />
         <Tabs.Screen
-          key={profilePic}
+          key={profilePicKey}
           name="profile"
           options={{
             tabBarLabel: "profile",
