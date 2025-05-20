@@ -140,15 +140,12 @@ const _layout = () => {
     }
   };
 
-  // Check for profile pic on every tab focus
   useFocusEffect(
     useCallback(() => {
       getProfilePic();
-
-      // Set up an interval to periodically check for updates
       const intervalId = setInterval(() => {
         getProfilePic();
-      }, 2000); // Check every 2 seconds
+      }, 2000);
 
       return () => clearInterval(intervalId);
     }, [])

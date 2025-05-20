@@ -11,8 +11,9 @@ const profile = require("../../assets/images/user.png");
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { router } from "expo-router";
-import MainCards from "../../components/mainCards";
-
+import MainCards from "../../components/MainCards";
+import TopBar from "../../components/TopBar";
+import TodayTask from "../../components/TodayTask";
 const index = () => {
   const DEFAULT_IMAGE = require("../../assets/images/user.png");
   const [greetings, setgreetings] = useState("");
@@ -55,7 +56,7 @@ const index = () => {
     getProfilePic();
   }, [getDetails, getProfilePic]);
   return (
-    <ScrollView>
+    <ScrollView nestedScrollEnabled={true}>
       <View style={styles.headStyle}>
         <View style={styles.headline}>
           <View style={styles.topBar}>
@@ -73,30 +74,10 @@ const index = () => {
             <Ionicons name="notifications-outline" size={24} color="black" />
           </View>
         </View>
-        <View style={styles.taskTopBar}>
-          <View style={styles.tasksHeadline}>
-            <Text style={styles.taskHeading}>Today's Tasks</Text>
-            <Text style={styles.taskPending}>5 Tasks Pending</Text>
-          </View>
-          <View style={styles.iconsTopBar}>
-            <View>
-              <Image
-                source={require("../../assets/images/filter.png")}
-                style={styles.filterImage}
-              />
-            </View>
-            <View style={styles.borderLine}></View>
-            <View>
-              <Ionicons
-                name="add-outline"
-                size={24}
-                color="black"
-                style={{ marginLeft: 20, marginTop: 20 }}
-              />
-            </View>
-          </View>
-        </View>
+        <TopBar heading={"Weekly Tasks"} pending={15} />
         <MainCards />
+        <TopBar heading={"Today's Tasks"} pending={10} />
+        <TodayTask />
       </View>
     </ScrollView>
   );
