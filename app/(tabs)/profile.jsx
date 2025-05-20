@@ -216,6 +216,7 @@ const profile = () => {
                       fontSize: 15,
                       fontFamily: "interRegular",
                       borderBottomWidth: 1,
+                      borderRadius: 5,
                     }}
                   >
                     Male
@@ -235,6 +236,7 @@ const profile = () => {
                       paddingVertical: 10,
                       backgroundColor: "#f2f2f2",
                       fontSize: 15,
+                      borderRadius: 5,
                       fontFamily: "interRegular",
                     }}
                   >

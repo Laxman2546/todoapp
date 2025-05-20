@@ -177,7 +177,7 @@ const _layout = () => {
     <>
       <StatusBar backgroundColor="#90a7f5" barStyle="light-content" />
       <Tabs
-        initialRouteName="index"
+        initialRouteName="create"
         screenOptions={({ route }) => ({
           headerShown: false,
           tabBarActiveTintColor: "#577CFF",
